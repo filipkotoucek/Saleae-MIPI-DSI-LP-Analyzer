@@ -156,7 +156,7 @@ bool MIPI_DSI_LP_Analyzer::GetStart()
 	mDataN->AdvanceToNextEdge();
 
 	/* Check if edge timings are outside boundary. */
-	if (startToPulse > (pulseLength * 5)) {
+	if (0 && startToPulse > (pulseLength * 5)) {
 		DEBUG_PRINTF("Error: D- pulse timing outside boundary.");
 		mResults->AddMarker(sampleStart, AnalyzerResults::ErrorX, mSettings->mNegChannel);
 		return false;
@@ -229,7 +229,7 @@ U64 MIPI_DSI_LP_Analyzer::GetBitstream()
 		/* Check on which data line we've got next edge. */
 		if (mDataP->GetSampleOfNextEdge() <= mDataN->GetSampleOfNextEdge()) {
 			/* Check if next edge is too far. */
-			if ((mDataP->GetSampleOfNextEdge() - mDataP->GetSampleNumber()) >= (pulseLength * 5)) {
+			if ((mDataP->GetSampleOfNextEdge() - mDataP->GetSampleNumber()) >= (pulseLength * 50)) {
 				DEBUG_PRINTF("Error: D+ too far.");
 				/* Go to rising edge. */
 				mDataP->AdvanceToNextEdge();
@@ -269,7 +269,7 @@ U64 MIPI_DSI_LP_Analyzer::GetBitstream()
 			bit.sampleEnd = mDataP->GetSampleOfNextEdge();
 
 			/* Check if next edge is too far. */
-			if ((bit.sampleEnd - bit.sampleBegin) >= (pulseLength * 5)) {
+			if ((bit.sampleEnd - bit.sampleBegin) >= (pulseLength * 50)) {
 				DEBUG_PRINTF("Next edge too far.");
 				/* Mark an error at sample begin. */
 				mResults->AddMarker(bit.sampleBegin, AnalyzerResults::ErrorX, mSettings->mPosChannel);
@@ -294,7 +294,7 @@ U64 MIPI_DSI_LP_Analyzer::GetBitstream()
 		}
 		else {
 			/* Check if next edge is too far. */
-			if ((mDataN->GetSampleOfNextEdge() - mDataN->GetSampleNumber()) >= (pulseLength * 5)) {
+			if (0 && (mDataN->GetSampleOfNextEdge() - mDataN->GetSampleNumber()) >= (pulseLength * 50)) {
 				DEBUG_PRINTF("Error: D- too far.");
 				/* Go to rising edge. */
 				mDataN->AdvanceToNextEdge();

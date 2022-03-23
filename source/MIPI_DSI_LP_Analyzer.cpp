@@ -155,13 +155,6 @@ bool MIPI_DSI_LP_Analyzer::GetStart()
 	/* Go to D- falling edge. */
 	mDataN->AdvanceToNextEdge();
 
-	/* Check if edge timings are outside boundary. */
-	if (0 && startToPulse > (pulseLength * 5)) {
-		DEBUG_PRINTF("Error: D- pulse timing outside boundary.");
-		mResults->AddMarker(sampleStart, AnalyzerResults::ErrorX, mSettings->mNegChannel);
-		return false;
-	}
-
 	/* Check if D+ was low during D- pulse. */
 	if (mDataP->WouldAdvancingToAbsPositionCauseTransition(mDataN->GetSampleNumber())) {
 		DEBUG_PRINTF("Error: D+ was not low during D- pulse.");
@@ -228,18 +221,6 @@ U64 MIPI_DSI_LP_Analyzer::GetBitstream()
 
 		/* Check on which data line we've got next edge. */
 		if (mDataP->GetSampleOfNextEdge() <= mDataN->GetSampleOfNextEdge()) {
-			/* Check if next edge is too far. */
-			if ((mDataP->GetSampleOfNextEdge() - mDataP->GetSampleNumber()) >= (pulseLength * 50)) {
-				DEBUG_PRINTF("Error: D+ too far.");
-				/* Go to rising edge. */
-				mDataP->AdvanceToNextEdge();
-				/* Add error marker. */
-				mResults->AddMarker(mDataP->GetSampleNumber(), AnalyzerResults::ErrorX, mSettings->mPosChannel);
-				/* Advance D- to D+. */
-				mDataN->AdvanceToAbsPosition(mDataP->GetSampleNumber());
-				/* Exit bitsteam. */
-				break;
-			}
 
 			/* Go to rising edge. */
 			mDataP->AdvanceToNextEdge();
@@ -268,19 +249,6 @@ U64 MIPI_DSI_LP_Analyzer::GetBitstream()
 			bit.sampleBegin = mDataP->GetSampleNumber();
 			bit.sampleEnd = mDataP->GetSampleOfNextEdge();
 
-			/* Check if next edge is too far. */
-			if ((bit.sampleEnd - bit.sampleBegin) >= (pulseLength * 50)) {
-				DEBUG_PRINTF("Next edge too far.");
-				/* Mark an error at sample begin. */
-				mResults->AddMarker(bit.sampleBegin, AnalyzerResults::ErrorX, mSettings->mPosChannel);
-				/* Advance D+ over this long pulse (to bit.sampleEnd). */
-				mDataP->AdvanceToNextEdge();
-				/* Advance D-. */
-				mDataN->AdvanceToAbsPosition(mDataP->GetSampleNumber());
-				/* Exit bitsteam. */
-				break;
-			}
-
 			bit.value = BIT_HIGH;
 			/* Mark the bit in the middle. */
 			mResults->AddMarker((bit.sampleBegin >> 1) + (bit.sampleEnd >> 1), AnalyzerResults::One, mSettings->mPosChannel);
@@ -293,19 +261,6 @@ U64 MIPI_DSI_LP_Analyzer::GetBitstream()
 			mDataN->AdvanceToAbsPosition(mDataP->GetSampleNumber());
 		}
 		else {
-			/* Check if next edge is too far. */
-			if (0 && (mDataN->GetSampleOfNextEdge() - mDataN->GetSampleNumber()) >= (pulseLength * 50)) {
-				DEBUG_PRINTF("Error: D- too far.");
-				/* Go to rising edge. */
-				mDataN->AdvanceToNextEdge();
-				/* Add error marker. */
-				mResults->AddMarker(mDataN->GetSampleNumber(), AnalyzerResults::ErrorX, mSettings->mNegChannel);
-				/* Advance D+ to D-. */
-				mDataP->AdvanceToAbsPosition(mDataN->GetSampleNumber());
-				/* Exit bitsteam. */
-				break;
-			}
-
 			/* Go to rising edge. */
 			mDataN->AdvanceToNextEdge();
 			/* Advance D+ to D-. */
@@ -333,18 +288,6 @@ U64 MIPI_DSI_LP_Analyzer::GetBitstream()
 			bit.sampleBegin = mDataN->GetSampleNumber();
 			bit.sampleEnd = mDataN->GetSampleOfNextEdge();
 
-			/* Check if next edge is too far. */
-			if ((bit.sampleEnd - bit.sampleBegin) >= (pulseLength * 5)) {
-				DEBUG_PRINTF("Next edge too far.");
-				/* Mark an error at sample begin. */
-				mResults->AddMarker(bit.sampleBegin, AnalyzerResults::ErrorX, mSettings->mNegChannel);
-				/* Advance D- over this long pulse (to bit.sampleEnd). */
-				mDataN->AdvanceToNextEdge();
-				/* Advance D+. */
-				mDataP->AdvanceToAbsPosition(mDataN->GetSampleNumber());
-				/* Exit bitsteam. */
-				break;
-			}
 
 			bit.value = BIT_LOW;
 			/* Mark the bit in the middle. */
